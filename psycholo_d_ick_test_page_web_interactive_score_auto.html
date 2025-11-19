@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PsycholoD*ick Test — Score automatique</title>
+  <style>
+    :root{
+      --bg:#0b0b10; --card:#12121a; --ink:#eaeaf6; --muted:#a6a8b6; --accent:#b76cff; --line:#1c1c28; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--ink)}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(#0b0b10, #0b0b10cc 60%, transparent);backdrop-filter:saturate(1.1) blur(6px)}
+    .wrap{max-width:1100px;margin:auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 10px 30px #0006}
+    h1{font-size:28px;margin:6px 0 6px}
+    h2{font-size:22px;margin:22px 0 8px}
+    h3{font-size:18px;margin:14px 0 8px;color:var(--muted)}
+    p.muted{color:var(--muted);margin:4px 0}
+    .row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+    select, button{background:#181824;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:600}
+    button.primary{background:var(--accent);border-color:#7a3ee6;color:#0c0618}
+    button.ghost{background:transparent}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .question{border:1px solid var(--line);border-radius:14px;padding:14px}
+    .scale{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .scale label{display:flex;gap:6px;align-items:center;background:#171723;border:1px solid #1f1f2e;padding:6px 8px;border-radius:10px;cursor:pointer}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--muted)}
+    .section{margin-top:28px}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#161622}
+    .scores{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .score{background:#0f0f18;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .score strong{font-variant-numeric:tabular-nums}
+    .resultBox{border:1px dashed #2a2a3a;border-radius:14px;padding:14px;background:#0f0f18}
+    .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+    .footer{color:#8f91a3;font-size:13px}
+    details{border:1px solid var(--line);border-radius:12px;padding:10px}
+    summary{cursor:pointer;font-weight:700}
+    .stickyTools{position:sticky;bottom:0;padding:10px;background:linear-gradient(transparent, #0b0b10 30%)}
+    .hidden{display:none}
+    pre.log{background:#0f0f18;border:1px solid var(--line);padding:10px;border-radius:12px;white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="card">
+        <h1>PsycholoD*ick Test <span class="badge">auto‑score</span></h1>
+        <p class="muted">Un auto‑questionnaire ludique et sérieux sur ton rapport à ton pénis. 1–5 : 1=Pas du tout, 5=Tout à fait. Ce n’est pas un diagnostic médical.</p>
+        <div class="row">
+          <label class="pill">Version
+            <select id="versionSelect">
+              <option value="short">Courte A–F (25 questions)</option>
+              <option value="full">Complète A–Z (105 questions)</option>
+            </select>
+          </label>
+          <button id="btnStart" class="primary">Générer le test</button>
+          <button id="btnSave" title="Sauvegarder dans ce navigateur" class="ghost">Sauvegarder</button>
+          <button id="btnLoad" class="ghost">Charger</button>
+          <button id="btnReset" class="ghost">Réinitialiser</button>
+          <button id="btnPrint" class="ghost">Imprimer / PDF</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" id="app"></main>
+
+  <script>
+  // ---------------- Data definition -----------------
+  const ITEMS = {
+    A:[
+      {k:'A1',t:"Globalement, je suis satisfait·e de mon pénis."},
+      {k:'A2',t:"Je compare souvent mon pénis à des normes ou à d’autres.", inv:true},
+      {k:'A3',t:"J’accepte ses variations (taille, angle, veines, couleur)."},
+      {k:'A4',t:"Je ressens de la fierté corporelle sans besoin d’approbation."}
+    ],
+    B:[
+      {k:'B1',t:"Je connais les positions/moments où il fonctionne au mieux."},
+      {k:'B2',t:"Je gère bien les aléas (érection tardive, perte, hypersensibilité)."},
+      {k:'B3',t:"J’identifie les facteurs d’aide (sommeil, stress, alimentation)."},
+      {k:'B4',t:"J’ose communiquer quand quelque chose ne va pas."}
+    ],
+    C:[
+      {k:'C1',t:"La “performance” me stresse avant l’intimité.", inv:true},
+      {k:'C2',t:"Je crains d’être jugé·e sur des critères visuels.", inv:true},
+      {k:'C3',t:"L’idée d’un “raté” me hante après coup.", inv:true},
+      {k:'C4',t:"Je reste dans le ressenti plus que dans le résultat."}
+    ],
+    D:[
+      {k:'D1',t:"J’expérimente de nouvelles stimulations/rythmes."},
+      {k:'D2',t:"Je suis curieux·se des réactions au toucher (pression/température)."},
+      {k:'D3',t:"J’ai appris ce qui le détend vs. l’excite."},
+      {k:'D4',t:"Je varie contextes (rythmes, durées, ambiances) en conscience."}
+    ],
+    E:[
+      {k:'E1',t:"J’ai une routine d’hygiène adaptée (quotidien, post-activité)."},
+      {k:'E2',t:"J’utilise des lubrifiants/soins quand pertinent."},
+      {k:'E3',t:"Je surveille les signaux (douleur, irritation) et réagis vite."},
+      {k:'E4',t:"Je consulte si un doute persiste."}
+    ],
+    F:[
+      {k:'F1',t:"L’idée d’être vu·e peut m’exciter."},
+      {k:'F2',t:"J’apprécie aussi la confidentialité/secret."},
+      {k:'F3',t:"Je sais poser des limites sur ce qui est montré."},
+      {k:'F4',t:"Je distingue “validation” vs “plaisir d’être regardé·e”."}
+    ],
+    G:[
+      {k:'G1',t:"Je suis attentif·ve aux retours verbaux et non verbaux."},
+      {k:'G2',t:"Je module rythme/intensité selon l’autre."},
+      {k:'G3',t:"Je priorise le confort partagé sur la performance."},
+      {k:'G4',t:"Je demande du feedback sans gêne."}
+    ],
+    H:[
+      {k:'H1',t:"Je nomme clairement mes limites."},
+      {k:'H2',t:"Je vérifie le consentement de l’autre régulièrement."},
+      {k:'H3',t:"Je sais dire non même sous pression."},
+      {k:'H4',t:"Je respecte les non/stop immédiatement."}
+    ],
+    I:[
+      {k:'I1',t:"Mon pénis fait partie de mon identité corporelle sans tout définir."},
+      {k:'I2',t:"Sa “performance” n’est pas égale à ma valeur."},
+      {k:'I3',t:"J’accepte les phases de vie (âge, santé) sans dévalorisation."},
+      {k:'I4',t:"Je relie sexualité et sens (tendresse, jeu, spiritualité) à mon rythme."}
+    ],
+    J:[
+      {k:'J1',t:"J’ai des fantasmes que je connais et assume."},
+      {k:'J2',t:"Je distingue fantasme et désir réel."},
+      {k:'J3',t:"Partager un fantasme ne me terrorise pas."},
+      {k:'J4',t:"Je peux co-créer des scénarios consensuels."}
+    ],
+    K:[
+      {k:'K1',t:"Je connais mes bords (ce qui m’attire sans m’envahir)."},
+      {k:'K2',t:"Je sais “calibrer” l’intensité pour rester sécure."},
+      {k:'K3',t:"J’utilise des mots/gestes de sécurité si besoin."},
+      {k:'K4',t:"Je peux arrêter/adapter sans honte."}
+    ],
+    L:[
+      {k:'L1',t:"Je repère mes cycles de désir."},
+      {k:'L2',t:"Je ne dramatise pas les baisses."},
+      {k:'L3',t:"Je sais nourrir le désir (repos, imagination, contextes)."},
+      {k:'L4',t:"Je communique quand le timing n’est pas bon."}
+    ],
+    M:[
+      {k:'M1',t:"Ma masturbation est choisie, non compulsive."},
+      {k:'M2',t:"Elle m’aide à mieux me connaître."},
+      {k:'M3',t:"Je peux varier techniques/rythmes."},
+      {k:'M4',t:"Si besoin, je peux faire des pauses sans manque anxieux."}
+    ],
+    N:[
+      {k:'N1',t:"Être nu·e seul·e est confortable."},
+      {k:'N2',t:"Être nu·e avec l’autre peut être agréable."},
+      {k:'N3',t:"Je prends soin du reste du corps (pelvis, plancher, respiration)."},
+      {k:'N4',t:"Je ne cache pas systématiquement mon pénis par gêne."}
+    ],
+    O:[
+      {k:'O1',t:"Je sais différer l’orgasme si je le souhaite."},
+      {k:'O2',t:"Je peux me laisser aller quand je veux."},
+      {k:'O3',t:"Je ne confonds pas orgasme et réussite."},
+      {k:'O4',t:"Je pratique des techniques (respiration, stop & go) si utile."}
+    ],
+    P:[
+      {k:'P1',t:"Je sais l’impact du porno sur mes attentes."},
+      {k:'P2',t:"Je compare rarement la réalité au porno.", inv:true},
+      {k:'P3',t:"J’utilise le porno comme inspiration, pas comme standard."},
+      {k:'P4',t:"Je peux m’en passer sans agitation."}
+    ],
+    Q:[
+      {k:'Q1',t:"Je repère les signaux corporels précoces (chaleur, tension, souffle)."},
+      {k:'Q2',t:"Je peux amplifier/diminuer l’excitation par l’attention."},
+      {k:'Q3',t:"Je gère bien les “faux départs”."},
+      {k:'Q4',t:"Je tolère l’imprévu sans m’auto-critiquer."}
+    ],
+    R:[
+      {k:'R1',t:"Je prends un temps d’après (tendresse, eau, respiration)."},
+      {k:'R2',t:"Je demande/présente du care après l’acte."},
+      {k:'R3',t:"Je sais repérer et réguler le “down”."},
+      {k:'R4',t:"Je peux débriefer calmement si nécessaire."}
+    ],
+    S:[
+      {k:'S1',t:"Je différencie pressions, textures, températures."},
+      {k:'S2',t:"Je sens le plancher pelvien (tonus/relâchement)."},
+      {k:'S3',t:"Je peux ralentir pour sentir davantage."},
+      {k:'S4',t:"Je coordonne souffle et mouvement."}
+    ],
+    T:[
+      {k:'T1',t:"J’adapte la cadence à la situation."},
+      {k:'T2',t:"Je supporte les rythmes lents sans impatience."},
+      {k:'T3',t:"Je ne me laisse pas happer par la précipitation."},
+      {k:'T4',t:"Je valorise le “rythme commun” plus que mon tempo."}
+    ],
+    U:[
+      {k:'U1',t:"J’accepte de ne pas tout contrôler."},
+      {k:'U2',t:"Les surprises ne détruisent pas mon excitation."},
+      {k:'U3',t:"Je distingue curiosité et danger."},
+      {k:'U4',t:"Je m’autorise à improviser."}
+    ],
+    V:[
+      {k:'V1',t:"Je peux dire ce que je ressens, même fragile."},
+      {k:'V2',t:"Je peux demander du soutien/ajustement."},
+      {k:'V3',t:"Je n’ai pas honte d’un moment de difficulté."},
+      {k:'V4',t:"Je sais remercier/dire bravo à nos corps."}
+    ],
+    W:[
+      {k:'W1',t:"Sommeil, stress, sport influencent positivement ma sexualité."},
+      {k:'W2',t:"Je relie mes habitudes (alcool, écrans) à mes performances."},
+      {k:'W3',t:"Je prévois du repos quand il faut."},
+      {k:'W4',t:"Je prends soin de ma santé intime (IST, check-ups)."}
+    ],
+    X:[
+      {k:'X1',t:"J’utilise ou j’accepte d’essayer des jouets/anneaux/techniques."},
+      {k:'X2',t:"Je choisis des outils adaptés et sûrs."},
+      {k:'X3',t:"Je ne vois pas les aides comme un échec."},
+      {k:'X4',t:"Je discute de leur usage avec l’autre."}
+    ],
+    Y:[
+      {k:'Y1',t:"Je sais ce que je veux aujourd’hui, pas en théorie."},
+      {k:'Y2',t:"Je peux dire oui sans me forcer."},
+      {k:'Y3',t:"Je peux dire non sans culpabiliser."},
+      {k:'Y4',t:"Je change d’avis si besoin, et je l’exprime."}
+    ],
+    Z:[
+      {k:'Z1',t:"Je reviens dans le corps quand je pars dans la tête."},
+      {k:'Z2',t:"Je peux rester présent·e au souffle et aux sensations."},
+      {k:'Z3',t:"Je savoure les micro-plaisirs, même sans orgasme."},
+      {k:'Z4',t:"Je sais conclure un moment sans me juger."}
+    ],
+  };
+  const ORDER_SHORT = ['A','B','C','D','E','F'];
+  const ORDER_FULL = Object.keys(ITEMS);
+
+  // --------------- Render helpers -------------------
+  const $ = (sel, el=document) => el.querySelector(sel);
+  const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
+
+  function renderTest(version='short'){
+    const order = version==='short' ? ORDER_SHORT : ORDER_FULL;
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+
+    // Intro / Q1
+    const intro = document.createElement('div');
+    intro.className = 'card';
+    intro.innerHTML = `
+      <h2>Q1 — Typologie</h2>
+      <p class="muted">Pénis de chair ou de sang ? (définitions)</p>
+      <ul>
+        <li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li>
+        <li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>
+      </ul>
+      <div class="row">
+        <label class="pill"><input type="radio" name="Q1" value="chair">&nbsp;Chair</label>
+        <label class="pill"><input type="radio" name="Q1" value="sang">&nbsp;Sang</label>
+        <label class="pill"><input type="radio" name="Q1" value="nsp">&nbsp;Je ne sais pas / varie</label>
+      </div>
+    `;
+    app.appendChild(intro);
+
+    // Sections
+    order.forEach(letter => {
+      const block = document.createElement('section');
+      block.className = 'section card';
+      block.innerHTML = `<h2>${letter}. ${sectionTitle(letter)}</h2>`;
+
+      ITEMS[letter].forEach(item => {
+        const q = document.createElement('div');
+        q.className = 'question';
+        const opt = [1,2,3,4,5].map(v=>`<label><input type="radio" name="${item.k}" value="${v}"> ${v}</label>`).join('');
+        q.innerHTML = `<div><strong>${item.k}</strong> — ${item.t} ${item.inv?'<span class="badge">inverse</span>':''}</div><div class="scale">${opt}</div>`;
+        block.appendChild(q);
+      });
+      app.appendChild(block);
+    });
+
+    // Results panel
+    const res = document.createElement('div');
+    res.className = 'section';
+    res.innerHTML = `
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:end">
+          <div>
+            <h2>Résultats</h2>
+            <p class="muted">Clique « Calculer » quand tu as tout coché (1–5). Les champs non cochés ne comptent pas dans la moyenne (ils sont ignorés).</p>
+          </div>
+          <div class="row">
+            <button id="btnCalc" class="primary">Calculer</button>
+            <button id="btnExport" class="ghost">Exporter (.json)</button>
+          </div>
+        </div>
+        <div id="scoreOut" class="scores" style="margin-top:12px"></div>
+        <div id="profileOut" class="resultBox" style="margin-top:12px"></div>
+      </div>`;
+    app.appendChild(res);
+
+    // Diagnostics & tests
+    const diag = document.createElement('div');
+    diag.className = 'section';
+    diag.innerHTML = `
+      <details class="card">
+        <summary>Diagnostics & Tests (dev)</summary>
+        <div class="row" style="margin:8px 0">
+          <button id="btnTests" class="ghost">Lancer les tests</button>
+          <span class="muted">(journal console + résumé ci‑dessous)</span>
+        </div>
+        <pre id="testLog" class="log"></pre>
+      </details>`;
+    app.appendChild(diag);
+
+    // Sticky tools at bottom for UX
+    const tools = document.createElement('div');
+    tools.className = 'stickyTools wrap';
+    tools.innerHTML = `<div class="card row" style="justify-content:space-between">
+      <div class="muted">Astuce : tu peux sauvegarder/charger tes réponses localement.</div>
+      <div class="row">
+        <button class="ghost" onclick="window.scrollTo({top:0,behavior:'smooth'})">Haut de page</button>
+        <button class="ghost" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})">Bas</button>
+      </div>
+    </div>`;
+    app.appendChild(tools);
+
+    // Bind buttons
+    $('#btnCalc').onclick = () => calculate(order);
+    $('#btnExport').onclick = () => exportJSON(order);
+    const btnT = $('#btnTests');
+    if(btnT) btnT.onclick = runTests;
+  }
+
+  function sectionTitle(letter){
+    const map = {
+      A:'Image & Acceptation', B:'Confort & Fonctionnel', C:'Anxiété → Sécurité', D:'Curiosité & Exploration', E:'Soin & Hygiène', F:'Regard (Exhibition/Secret)',
+      G:'Empathie & Ajustement', H:'Consentement & Limites', I:'Identité & Sens', J:'Fantasmes & Imagerie', K:'Kinks & Bords', L:'Libido & Cycles',
+      M:'Masturbation', N:'Nudité & Corps global', O:'Orgasme & Gestion', P:'Pornographie & Influence', Q:'Signaux d’arousal', R:'Récupération & Aftercare',
+      S:'Sensations fines & Proprioception', T:'Tempo & Cadence', U:'Tolérance à l’incertitude', V:'Vulnérabilité & Parole', W:'Wellbeing & Style de vie',
+      X:'Aides externes — Outils & Jouets', Y:'Yes/No — Choix & clarté', Z:'Zen — Présence'
+    };
+    return map[letter] || letter;
+  }
+
+  function readValue(name){
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? Number(el.value) : 0;
+  }
+
+  function calculate(order){
+    const inversions = new Set(['A2','C1','C2','C3','P2']);
+    const scores = {};
+    let total = 0;
+    let answeredSum = 0; // somme des valeurs répondues (après inversion)
+    let answeredCount = 0; // nombre d'items effectivement répondus
+
+    order.forEach(letter=>{
+      let sum = 0;
+      ITEMS[letter].forEach(item=>{
+        let v = readValue(item.k);
+        if(v>0){
+          if(inversions.has(item.k)){ v = 6 - v; } // 1↔5
+          answeredSum += v;
+          answeredCount += 1;
+          sum += v;
+        }
+      });
+      scores[letter] = sum; total += sum;
+    });
+
+    // Render per-section cards
+    const out = $('#scoreOut');
+    out.innerHTML = '';
+    order.forEach(letter=>{
+      const box = document.createElement('div');
+      box.className = 'score';
+      const val = scores[letter];
+      const cls = val>=16? 'ok' : val>=11? 'warn' : 'bad';
+      box.innerHTML = `<div class="muted">${letter} — ${sectionTitle(letter)}</div><strong class="${cls}">${String(val).padStart(2,'0')} / 20</strong>`;
+      out.appendChild(box);
+    });
+
+    // Moyenne générale (1–5) sur les items répondus
+    const avg = answeredCount>0 ? (answeredSum/answeredCount) : 0;
+    const avgStr = avg>0 ? avg.toFixed(2) : '—';
+
+    // Profile text
+    const profile = $('#profileOut');
+    const top = Object.entries(scores).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} (${v}/20)`).join(', ');
+
+    const hints = [];
+    if(scores.A>=16 && scores.B>=16 && scores.C>=16) hints.push('Profil <strong>Serein·e pragmatique</strong> : acceptation + fonctionnement + sécurité.');
+    if(scores.D>=16 && scores.A>=12) hints.push('Profil <strong>Explorateur·rice curieux·se</strong> : apprentissages continus.');
+    if(scores.A>=16 && scores.E>=16 && scores.F>=14) hints.push('Profil <strong>Esthète exigeant·e</strong> : soin, esthétique et cadre du regard.');
+    if(scores.C<=10 || scores.A<=10) hints.push('Profil <strong>Cerveau‑qui‑chauffe</strong> : diminue la pression, reviens au souffle/ressenti.');
+    if(scores.R>=16 && scores.V>=14) hints.push('Profil <strong>Care Master</strong> : aftercare et parole solide.');
+    if(scores.T>=16 && scores.Z>=16) hints.push('Profil <strong>Zen Flow</strong> : rythme commun et présence.');
+
+    const q1el = $('input[name="Q1"]:checked');
+    const q1sel = q1el? q1el.value : 'non renseigné';
+
+    // Interprétation moyenne générale
+    const avgInterp = interpretAverage(avg);
+
+    // Interprétation spécifique liée à Q1
+    const q1Note = (()=>{
+      if(q1sel==='chair') return "Typologie ‘chair’ : variabilité moindre au repos → miser sur confort, endurance, lubrification adaptée.";
+      if(q1sel==='sang') return "Typologie ‘sang’ : grande expansion à l’érection → valoriser pré‑chauffe douce, respiration, progressivité.";
+      if(q1sel==='nsp') return "Typologie variable/NSP : observe tes variations au repos/érection pour ajuster attentes et rythmes.";
+      return null;
+    })();
+
+    const coverage = (()=>{
+      const maxItems = order.length * 4; // 4 items par section
+      return Math.round((answeredCount / maxItems) * 100);
+    })();
+
+    profile.innerHTML = `
+      <div class="row" style="gap:12px;align-items:center;flex-wrap:wrap">
+        <div class="pill">Q1 : <strong>${q1sel}</strong></div>
+        <div class="pill">Somme des sections : <strong>${total}</strong> / ${order.length*20}</div>
+        <div class="pill">Moyenne générale : <strong>${avgStr}</strong> / 5</div>
+        <div class="pill">Couverture : <strong>${coverage}%</strong></div>
+      </div>
+      <div style="margin-top:10px"><strong>Top sections :</strong> ${top||'—'}</div>
+      ${hints.length? `<ul style="margin-top:8px">${hints.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
+      ${avg>0 ? `<p style="margin-top:8px"><strong>Lecture moyenne :</strong> ${avgInterp}</p>` : '<p class="muted">Réponses partielles : complète les items pour une analyse plus fine.</p>'}
+      ${q1Note ? `<p class="muted" style="margin-top:6px">${q1Note}</p>` : ''}
+      <details style="margin-top:8px"><summary>Interprétation rapide par section</summary>
+        <p><span class="ok">16–20</span> : solide · <span class="warn">11–15</span> : à affiner · <span class="bad">≤10</span> : axe prioritaire.</p>
+      </details>
+    `;
+
+    // persist auto
+    saveLocal(order);
+  }
+
+  function currentOrderKey(){
+    return ($('#versionSelect').value==='short')? 'AF' : 'AZ';
+  }
+
+  // Interprétation par moyenne générale (1–5)
+  function interpretAverage(avg){
+    if(!avg || isNaN(avg)) return '';
+    if(avg >= 4.2) return "Relation sereine et intégrée : bonne acceptation, régulation et présence. Continue d’affiner sans pression.";
+    if(avg >= 3.4) return "Base solide avec quelques zones à affiner : identifie 1–2 sections à travailler (respiration, communication, rythmes).";
+    if(avg >= 2.6) return "Équilibre variable : plusieurs axes progressent. Choisis une micro‑routine (soin, aftercare, tempo) pendant 2 semaines.";
+    return "Vulnérabilités marquées : recentre‑toi sur sécurité/consentement, respiration, soins. Consulter un·e pro si gêne persistante.";
+  }
+
+  function saveLocal(order){
+    const data = {version: currentOrderKey(), answers:{}};
+    // Q1
+    const q1 = $('input[name="Q1"]:checked');
+    if(q1) data.answers['Q1'] = q1.value;
+    // all
+    order.forEach(letter=>{
+      ITEMS[letter].forEach(it=>{
+        const v = readValue(it.k);
+        if(v>0) data.answers[it.k] = v;
+      })
+    });
+    localStorage.setItem('psycholodick_answers', JSON.stringify(data));
+  }
+
+  function loadLocal(){
+    const raw = localStorage.getItem('psycholodick_answers');
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch{ return null }
+  }
+
+  function applyData(data){
+    if(!data) return;
+    if(data.version==='AF'){ $('#versionSelect').value = 'short'; }
+    if(data.version==='AZ'){ $('#versionSelect').value = 'full'; }
+    // regenerate to ensure fields exist
+    renderTest($('#versionSelect').value);
+    // Q1
+    if(data.answers['Q1']){
+      const el = document.querySelector(`input[name="Q1"][value="${data.answers['Q1']}"]`);
+      if(el) el.checked = true;
+    }
+    // answers
+    Object.entries(data.answers).forEach(([k,v])=>{
+      if(k==='Q1') return;
+      const el = document.querySelector(`input[name="${k}"][value="${v}"]`);
+      if(el) el.checked = true;
+    })
+  }
+
+  function exportJSON(order){
+    const data = {version: currentOrderKey(), date: new Date().toISOString(), answers:{}};
+    const q1 = $('input[name="Q1"]:checked');
+    data.answers['Q1'] = q1? q1.value : null;
+    order.forEach(letter=>{
+      ITEMS[letter].forEach(it=>{ data.answers[it.k] = readValue(it.k) || null; });
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `psycholodick_${currentOrderKey()}_${Date.now()}.json`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // -------- Tests (basic) ----------
+  function runTests(){
+    const log=[]; let fail=0;
+    const push=(msg)=>log.push(msg);
+    const test=(name,fn)=>{ try{ fn(); push('✅ '+name); } catch(e){ push('❌ '+name+' — '+(e.message||e)); fail++; } };
+
+    // T1: interpretAverage thresholds
+    test('interpretAverage ≥4.2', ()=>{ const r=interpretAverage(4.2); if(!/sereine|intégrée/i.test(r)) throw new Error('bad band'); });
+    test('interpretAverage 3.4–4.19', ()=>{ const r=interpretAverage(3.8); if(!/Base solide/i.test(r)) throw new Error('band mismatch'); });
+    test('interpretAverage 2.6–3.39', ()=>{ const r=interpretAverage(3.0); if(!/Équilibre variable/i.test(r)) throw new Error('band mismatch'); });
+    test('interpretAverage <2.6', ()=>{ const r=interpretAverage(2.0); if(!/Vulnérabilités/i.test(r)) throw new Error('band mismatch'); });
+
+    // T2: currentOrderKey returns AF/AZ
+    test('currentOrderKey short', ()=>{ document.getElementById('versionSelect').value='short'; if(currentOrderKey()!=='AF') throw new Error('not AF'); });
+    test('currentOrderKey full', ()=>{ document.getElementById('versionSelect').value='full'; if(currentOrderKey()!=='AZ') throw new Error('not AZ'); });
+
+    // T3: inversion mapping logic
+    test('inversion A2: 1→5', ()=>{ const v=1; const inv = new Set(['A2']); const res = inv.has('A2')? 6-v : v; if(res!==5) throw new Error('expected 5'); });
+    test('inversion A2: 5→1', ()=>{ const v=5; const inv = new Set(['A2']); const res = inv.has('A2')? 6-v : v; if(res!==1) throw new Error('expected 1'); });
+
+    // T4: average ignores unanswered
+    test('average with only A1=5 on short order', ()=>{
+      renderTest('short');
+      const el = document.querySelector('input[name="A1"][value="5"]'); if(!el) throw new Error('A1 missing'); el.checked=true;
+      calculate(ORDER_SHORT);
+      const txt = document.getElementById('profileOut').innerText;
+      if(!/Moyenne générale\s*:\s*5\.00\s*\/\s*5/.test(txt)) throw new Error('avg not 5.00');
+    });
+
+    // T5: JSON export structure
+    test('export JSON has version & answers', ()=>{
+      const order = ORDER_SHORT;
+      const data = {version: currentOrderKey(), date: new Date().toISOString(), answers:{}};
+      if(!data.version || !/AF|AZ/.test(data.version)) throw new Error('version');
+    });
+
+    const out = document.getElementById('testLog');
+    if(out){ out.textContent = log.join('\n') + `\n\nRésultat: ${fail? '❌ '+fail+' échec(s)':'✅ Tous les tests passent'}`; }
+    console.log('[PsycholoD*ick tests]', {fail, log});
+  }
+
+  // --------------- Global controls -----------------
+  document.getElementById('btnStart').onclick = () => renderTest($('#versionSelect').value);
+  document.getElementById('btnSave').onclick = () => {
+    const version = $('#versionSelect').value;
+    const order = version==='short'? ORDER_SHORT : ORDER_FULL;
+    saveLocal(order); alert('Réponses sauvegardées dans ce navigateur.');
+  }
+  document.getElementById('btnLoad').onclick = () => {
+    const data = loadLocal();
+    if(!data){ alert('Aucune sauvegarde trouvée.'); return; }
+    applyData(data);
+  }
+  document.getElementById('btnReset').onclick = () => { localStorage.removeItem('psycholodick_answers'); location.reload(); }
+  document.getElementById('btnPrint').onclick = () => window.print();
+
+  // Auto-init (try load)
+  const cached = loadLocal();
+  if(cached){ applyData(cached); }
+  </script>
+</body>
+</html>
