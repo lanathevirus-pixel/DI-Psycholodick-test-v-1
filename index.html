@@ -55,10 +55,10 @@
         <div style="flex:1 1 220px">
           <h1 id="titleMain">
             <span id="titleMainText">PsycholoD*ick Test</span>
-            <span class="badge" id="badgeMain">auto‑score</span>
+            <span class="badge" id="badgeMain">auto-score</span>
           </h1>
           <p class="muted" id="subtitleMain">
-            Un auto‑questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité.
+            Un auto-questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité.
             1 = Pas du tout, 5 = Tout à fait. Ce n’est pas un diagnostic médical.
           </p>
         </div>
@@ -93,8 +93,8 @@
   const UI_I18N = {
     fr: {
       titleMain: 'PsycholoD*ick Test',
-      badgeMain: 'auto‑score',
-      subtitleMain: 'Un auto‑questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité. 1 = Pas du tout, 5 = Tout à fait. Ce n’est pas un diagnostic médical.',
+      badgeMain: 'auto-score',
+      subtitleMain: 'Un auto-questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité. 1 = Pas du tout, 5 = Tout à fait. Ce n’est pas un diagnostic médical.',
       versionLabel: 'Version',
       versionShort: 'Courte A–F (25 questions)',
       versionFull: 'Complète A–Z (105 questions)',
@@ -106,16 +106,20 @@
       btnPrint: 'Imprimer / PDF',
       q1Title: 'Q1 — Typologie',
       q1Subtitle: 'Pénis de chair ou de sang ? (définitions)',
-      q1List: '<li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li><li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>',
+      q1List: '<li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li><li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>',
       q1LabelChair: 'Chair',
       q1LabelSang: 'Sang',
-      q1LabelMixed: 'Mixte / variable',
-      q1LabelNo: 'Je ne sais pas / je ne veux pas choisir'
+      q1LabelNo: 'Je ne sais pas / varie',
+      introTitle: 'Rituel d’entrée — Session PsycholoD*ick',
+      introP1: 'Prends une respiration lente. Ce test n’est pas un verdict, ni un jugement, mais un miroir pour observer ta relation à ton sexe et à ton intimité.',
+      introP2: 'Réponds avec honnêteté douce : pense à ce que tu fais le plus souvent, pas à l’idéal. Tu peux t’arrêter à tout moment si quelque chose gratte trop.',
+      introP3: 'À la fin, garde ce qui résonne, jette le reste. Tu restes souverain·e sur ton corps, ton rythme, tes décisions.',
+      introBtn: 'Entrer dans le test'
     },
     en: {
       titleMain: 'PsycholoD*ick Test',
-      badgeMain: 'auto‑score',
-      subtitleMain: 'A playful yet serious self‑questionnaire to explore your relationship with your penis, your body and your intimacy. 1 = Not at all, 5 = Completely. This is not a medical diagnosis.',
+      badgeMain: 'auto-score',
+      subtitleMain: 'A playful yet serious self-questionnaire to explore your relationship with your penis, your body and your intimacy. 1 = Not at all, 5 = Completely. This is not a medical diagnosis.',
       versionLabel: 'Version',
       versionShort: 'Short A–F (25 questions)',
       versionFull: 'Full A–Z (105 questions)',
@@ -130,8 +134,12 @@
       q1List: '<li><strong>“Shower” (more flesh)</strong>: looks bigger at rest, changes less when erect.</li><li><strong>“Grower” (more blood)</strong>: looks smaller at rest, expands a lot when erect.</li>',
       q1LabelChair: 'Shower / more flesh',
       q1LabelSang: 'Grower / more blood',
-      q1LabelMixed: 'Mixed / variable',
-      q1LabelNo: 'I don’t know / I don’t want to choose'
+      q1LabelNo: 'I don’t know / varies',
+      introTitle: 'Entrance ritual — PsycholoD*ick session',
+      introP1: 'Take a slow breath. This test is not a verdict or a judgment, but a mirror to observe your relationship to your genitals and your intimacy.',
+      introP2: 'Answer with gentle honesty: think about what you do most of the time, not the ideal version of you. You can stop at any moment if something feels too confronting.',
+      introP3: 'At the end, keep what resonates and discard the rest. You stay fully sovereign over your body, your pace and your decisions.',
+      introBtn: 'Enter the test'
     }
   };
 
@@ -186,10 +194,20 @@
     if(q1LabelChair && t.q1LabelChair) q1LabelChair.textContent = t.q1LabelChair;
     const q1LabelSang = document.getElementById('q1LabelSang');
     if(q1LabelSang && t.q1LabelSang) q1LabelSang.textContent = t.q1LabelSang;
-    const q1LabelMixed = document.getElementById('q1LabelMixed');
-    if(q1LabelMixed && t.q1LabelMixed) q1LabelMixed.textContent = t.q1LabelMixed;
     const q1LabelNo = document.getElementById('q1LabelNo');
     if(q1LabelNo && t.q1LabelNo) q1LabelNo.textContent = t.q1LabelNo;
+
+    // Intro block (if visible)
+    const introTitle = document.getElementById('introTitle');
+    if(introTitle && t.introTitle) introTitle.textContent = t.introTitle;
+    const introP1 = document.getElementById('introP1');
+    if(introP1 && t.introP1) introP1.textContent = t.introP1;
+    const introP2 = document.getElementById('introP2');
+    if(introP2 && t.introP2) introP2.textContent = t.introP2;
+    const introP3 = document.getElementById('introP3');
+    if(introP3 && t.introP3) introP3.textContent = t.introP3;
+    const introBtn = document.getElementById('introStartBtn');
+    if(introBtn && t.introBtn) introBtn.textContent = t.introBtn;
 
     // Lang buttons state
     document.querySelectorAll('.langBtn').forEach(btn=>{
@@ -371,25 +389,24 @@
     // Intro / Q1
     const intro = document.createElement('div');
     intro.className = 'card';
-        intro.innerHTML = `
+    
+    intro.innerHTML = `
       <h2 id="q1Title">Q1 — Typologie</h2>
       <p class="muted" id="q1Subtitle">Pénis de chair ou de sang ? (définitions)</p>
       <ul id="q1List">
-        <li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li>
-        <li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>
+        <li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li>
+        <li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>
       </ul>
       <div class="row">
         <label class="pill"><input type="radio" name="Q1" value="chair">&nbsp;<span id="q1LabelChair">Chair</span></label>
         <label class="pill"><input type="radio" name="Q1" value="sang">&nbsp;<span id="q1LabelSang">Sang</span></label>
-        <label class="pill"><input type="radio" name="Q1" value="mixte">&nbsp;<span id="q1LabelMixed">Mixte / variable</span></label>
-        <label class="pill"><input type="radio" name="Q1" value="nsp">&nbsp;<span id="q1LabelNo">Je ne sais pas / je ne veux pas choisir</span></label>
+        <label class="pill"><input type="radio" name="Q1" value="nsp">&nbsp;<span id="q1LabelNo">Je ne sais pas / varie</span></label>
       </div>
     `;
-app.appendChild(intro);
+    app.appendChild(intro);
 
     // Sections
-    order.forEach(letter => {
-      const block = document.createElement('section');
+    order.forEach(letter => {nt('section');
       block.className = 'section card';
       block.innerHTML = `<h2>${letter}. ${sectionTitle(letter)}</h2>`;
 
@@ -456,7 +473,41 @@ app.appendChild(intro);
     if(btnT) btnT.onclick = runTests;
   }
 
-  function sectionTitle(letter){
+    function renderIntro(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <div class="card" id="introCard">
+        <h2 id="introTitle">Rituel d’entrée — Session PsycholoD*ick</h2>
+        <p class="muted" id="introP1">
+          Prends une respiration lente. Ce test n’est pas un verdict, ni un jugement, mais un miroir pour observer ta relation à ton sexe et à ton intimité.
+        </p>
+        <p class="muted" id="introP2">
+          Réponds avec honnêteté douce : pense à ce que tu fais le plus souvent, pas à l’idéal. Tu peux t’arrêter à tout moment si quelque chose gratte trop.
+        </p>
+        <p class="muted" id="introP3">
+          À la fin, garde ce qui résonne, jette le reste. Tu restes souverain·e sur ton corps, ton rythme, tes décisions.
+        </p>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end">
+          <button id="introStartBtn" class="primary">Entrer dans le test</button>
+        </div>
+      </div>
+    `;
+    const btn = document.getElementById('introStartBtn');
+    if(btn){
+      btn.onclick = () => {
+        startTest();
+      };
+    }
+  }
+
+  function startTest(){
+    const vSel = document.getElementById('versionSelect');
+    const version = vSel ? vSel.value : 'short';
+    renderTest(version);
+    applyLang(currentLang);
+  }
+
+function sectionTitle(letter){
     const map = {
       A:'Image & Acceptation', B:'Confort & Fonctionnel', C:'Anxiété → Sécurité', D:'Curiosité & Exploration', E:'Soin & Hygiène', F:'Regard (Exhibition/Secret)',
       G:'Empathie & Ajustement', H:'Consentement & Limites', I:'Identité & Sens', J:'Fantasmes & Imagerie', K:'Kinks & Bords', L:'Libido & Cycles',
@@ -670,8 +721,7 @@ app.appendChild(intro);
 
   // --------------- Global controls -----------------
   document.getElementById('btnStart').onclick = () => {
-    renderTest($('#versionSelect').value);
-    applyLang(currentLang);
+    startTest();
   };
   document.getElementById('btnSave').onclick = () => {
     const version = $('#versionSelect').value;
@@ -681,6 +731,7 @@ app.appendChild(intro);
   document.getElementById('btnLoad').onclick = () => {
     const data = loadLocal();
     if(!data){ alert('Aucune sauvegarde trouvée.'); return; }
+    startTest();
     applyData(data);
   }
   document.getElementById('btnReset').onclick = () => { localStorage.removeItem('psycholodick_answers'); location.reload(); }
@@ -696,9 +747,8 @@ app.appendChild(intro);
   // Initial language application
   applyLang(currentLang);
 
-  // Auto-init (try load)
-  const cached = loadLocal();
-  if(cached){ applyData(cached); }
+  // Auto-init: always show intro first (cache chargeable via "Charger")
+  renderIntro();
   </script>
 </body>
 </html>
