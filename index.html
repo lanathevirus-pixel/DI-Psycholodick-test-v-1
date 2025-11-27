@@ -40,9 +40,59 @@
     .stickyTools{position:sticky;bottom:0;padding:10px;background:linear-gradient(transparent, #0b0b10 30%)}
     .hidden{display:none}
     pre.log{background:#0f0f18;border:1px solid var(--line);padding:10px;border-radius:12px;white-space:pre-wrap}
-  </style>
+  
+    .intro-overlay{
+      position:fixed;
+      inset:0;
+      background:radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      z-index:999;
+      transition:opacity .35s ease-out;
+    }
+    .intro-inner{
+      max-width:720px;
+      text-align:left;
+      animation:fadeIn .8s ease-out;
+    }
+    .intro-steps{
+      margin:12px 0 18px;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    .intro-note{
+      font-size:13px;
+      color:var(--muted);
+      opacity:.9;
+      margin-top:10px;
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(12px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+</style>
 </head>
 <body>
+
+  <div id="introOverlay" class="intro-overlay">
+    <div class="card intro-inner">
+      <h1>Rituel d’entrée PsycholoD*ick</h1>
+      <p class="muted">Avant de laisser la Déesse scanner ton rapport à ton pénis, prends un instant pour t’aligner.</p>
+      <ol class="intro-steps">
+        <li>Installe‑toi confortablement, écran seul, son réglé, aucune distraction.</li>
+        <li>Respire profondément 3 fois et observe ce que tu ressens dans ton corps — sans chercher à corriger.</li>
+        <li>Engage‑toi à répondre avec honnêteté radicale, sans te juger, juste pour voir clair.</li>
+        <li>Autorise‑toi à accueillir les résultats comme un miroir, pas comme un verdict.</li>
+      </ol>
+      <p class="intro-note">Ce test ne remplace pas un accompagnement médical ou thérapeutique. C’est un outil de prise de conscience, pas un jugement.</p>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-top:16px">
+        <span class="muted">Quand tu es prêt·e, entre dans la session.</span>
+        <button id="btnEnterRitual" class="primary">Entrer dans le test</button>
+      </div>
+    </div>
+  </div>
   <header>
     <div class="wrap">
       <div class="card">
@@ -553,7 +603,19 @@
   document.getElementById('btnReset').onclick = () => { localStorage.removeItem('psycholodick_answers'); location.reload(); }
   document.getElementById('btnPrint').onclick = () => window.print();
 
-  // Auto-init (try load)
+  
+  // --------------- Intro overlay -----------------
+  const introOverlay = document.getElementById('introOverlay');
+  const btnEnterRitual = document.getElementById('btnEnterRitual');
+  if(btnEnterRitual && introOverlay){
+    btnEnterRitual.onclick = () => {
+      introOverlay.style.opacity = '0';
+      introOverlay.style.pointerEvents = 'none';
+      setTimeout(()=>{ if(introOverlay && introOverlay.parentNode){ introOverlay.parentNode.removeChild(introOverlay); } }, 400);
+    };
+  }
+
+// Auto-init (try load)
   const cached = loadLocal();
   if(cached){ applyData(cached); }
   </script>
