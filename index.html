@@ -40,139 +40,163 @@
     .stickyTools{position:sticky;bottom:0;padding:10px;background:linear-gradient(transparent, #0b0b10 30%)}
     .hidden{display:none}
     pre.log{background:#0f0f18;border:1px solid var(--line);padding:10px;border-radius:12px;white-space:pre-wrap}
-  
-    .intro-overlay{
-      position:fixed;
-      inset:0;
-      background:radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      z-index:999;
-      transition:opacity .35s ease-out;
-    }
-    .intro-inner{
-      max-width:720px;
-      text-align:left;
-      animation:fadeIn .8s ease-out;
-    }
-    .intro-steps{
-      margin:12px 0 18px;
-      padding-left:18px;
-      color:var(--muted);
-    }
-    .intro-note{
-      font-size:13px;
-      color:var(--muted);
-      opacity:.9;
-      margin-top:10px;
-    }
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(12px);}
-      to{opacity:1;transform:translateY(0);}
-    }
 
-  /* --- Mobile friendly overrides --- */
-  @media (max-width: 768px){
-    body{
-      font-size:15px;
-    }
-    header{
-      position:static;
-    }
-    .wrap{
-      padding:12px 10px;
-    }
-    .card{
-      padding:16px;
-      border-radius:14px;
-    }
-    h1{
-      font-size:22px;
-    }
-    h2{
-      font-size:18px;
-    }
-    h3{
-      font-size:16px;
-    }
-    .row{
-      flex-direction:column;
-      align-items:stretch;
-    }
-    .scores{
-      grid-template-columns:1fr;
-    }
-    select,
-    button,
-    input[type="number"],
-    input[type="text"],
-    textarea{
-      width:100%;
-    }
-    .resultBox{
-      padding:12px;
-    }
-    .pill{
-      align-items:flex-start;
-      flex-wrap:wrap;
-      row-gap:4px;
-    }
-    table{
-      display:block;
-      max-width:100%;
-      overflow-x:auto;
-      font-size:13px;
-    }
-  }
+    .langSwitch{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex:0 0 auto}
+    .langBtn{border:1px solid var(--line);background:#161622;color:var(--muted);border-radius:999px;padding:6px 10px;font-size:13px;cursor:pointer}
+    .langBtn.active{background:var(--accent);color:#0c0618;border-color:#7a3ee6}
 
   </style>
 </head>
 <body>
-
-  <div id="introOverlay" class="intro-overlay">
-    <div class="card intro-inner">
-      <h1>Rituel d’entrée PsycholoD*ick</h1>
-      <p class="muted">Avant de laisser la Déesse scanner ton rapport à ton pénis, prends un instant pour t’aligner.</p>
-      <ol class="intro-steps">
-        <li>Installe‑toi confortablement, écran seul, son réglé, aucune distraction.</li>
-        <li>Respire profondément 3 fois et observe ce que tu ressens dans ton corps — sans chercher à corriger.</li>
-        <li>Engage‑toi à répondre avec honnêteté radicale, sans te juger, juste pour voir clair.</li>
-        <li>Autorise‑toi à accueillir les résultats comme un miroir, pas comme un verdict.</li>
-      </ol>
-      <p class="intro-note">Ce test ne remplace pas un accompagnement médical ou thérapeutique. C’est un outil de prise de conscience, pas un jugement.</p>
-      <div class="row" style="justify-content:space-between;align-items:center;margin-top:16px">
-        <span class="muted">Quand tu es prêt·e, entre dans la session.</span>
-        <button id="btnEnterRitual" class="primary">Entrer dans le test</button>
+  <header>
+  <div class="wrap">
+    <div class="card headerBar">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1 1 220px">
+          <h1 id="titleMain">
+            <span id="titleMainText">PsycholoD*ick Test</span>
+            <span class="badge" id="badgeMain">auto‑score</span>
+          </h1>
+          <p class="muted" id="subtitleMain">
+            Un auto‑questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité.
+            1 = Pas du tout, 5 = Tout à fait. Ce n’est pas un diagnostic médical.
+          </p>
+        </div>
+        <div class="langSwitch">
+          <button type="button" class="langBtn active" data-lang="fr">FR</button>
+          <button type="button" class="langBtn" data-lang="en">EN</button>
+        </div>
+      </div>
+      <div class="row">
+        <label class="pill" id="versionLabel">Version
+          <select id="versionSelect">
+            <option value="short">Courte A–F (25 questions)</option>
+            <option value="full">Complète A–Z (105 questions)</option>
+          </select>
+        </label>
+        <button id="btnStart" class="primary">Générer le test</button>
+        <button id="btnSave" title="Sauvegarder dans ce navigateur" class="ghost">Sauvegarder</button>
+        <button id="btnLoad" class="ghost">Charger</button>
+        <button id="btnReset" class="ghost">Réinitialiser</button>
+        <button id="btnPrint" class="ghost">Imprimer / PDF</button>
       </div>
     </div>
   </div>
-  <header>
-    <div class="wrap">
-      <div class="card">
-        <h1>PsycholoD*ick Test <span class="badge">auto‑score</span></h1>
-        <p class="muted">Un auto‑questionnaire ludique et sérieux sur ton rapport à ton pénis. 1–5 : 1=Pas du tout, 5=Tout à fait. Ce n’est pas un diagnostic médical.</p>
-        <div class="row">
-          <label class="pill">Version
-            <select id="versionSelect">
-              <option value="short">Courte A–F (25 questions)</option>
-              <option value="full">Complète A–Z (105 questions)</option>
-            </select>
-          </label>
-          <button id="btnStart" class="primary">Générer le test</button>
-          <button id="btnSave" title="Sauvegarder dans ce navigateur" class="ghost">Sauvegarder</button>
-          <button id="btnLoad" class="ghost">Charger</button>
-          <button id="btnReset" class="ghost">Réinitialiser</button>
-          <button id="btnPrint" class="ghost">Imprimer / PDF</button>
-        </div>
-      </div>
-    </div>
-  </header>
+</header>
 
   <main class="wrap" id="app"></main>
 
   <script>
+    // ---------------- Language handling -----------------
+  let currentLang = 'fr';
+
+  const UI_I18N = {
+    fr: {
+      titleMain: 'PsycholoD*ick Test',
+      badgeMain: 'auto‑score',
+      subtitleMain: 'Un auto‑questionnaire ludique et sérieux pour explorer ta relation à ton pénis, ton corps et ton intimité. 1 = Pas du tout, 5 = Tout à fait. Ce n’est pas un diagnostic médical.',
+      versionLabel: 'Version',
+      versionShort: 'Courte A–F (25 questions)',
+      versionFull: 'Complète A–Z (105 questions)',
+      btnStart: 'Générer le test',
+      btnSave: 'Sauvegarder',
+      btnSaveTitle: 'Sauvegarder dans ce navigateur',
+      btnLoad: 'Charger',
+      btnReset: 'Réinitialiser',
+      btnPrint: 'Imprimer / PDF',
+      q1Title: 'Q1 — Typologie',
+      q1Subtitle: 'Pénis de chair ou de sang ? (définitions)',
+      q1List: '<li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li><li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>',
+      q1LabelChair: 'Chair',
+      q1LabelSang: 'Sang',
+      q1LabelMixed: 'Mixte / variable',
+      q1LabelNo: 'Je ne sais pas / je ne veux pas choisir'
+    },
+    en: {
+      titleMain: 'PsycholoD*ick Test',
+      badgeMain: 'auto‑score',
+      subtitleMain: 'A playful yet serious self‑questionnaire to explore your relationship with your penis, your body and your intimacy. 1 = Not at all, 5 = Completely. This is not a medical diagnosis.',
+      versionLabel: 'Version',
+      versionShort: 'Short A–F (25 questions)',
+      versionFull: 'Full A–Z (105 questions)',
+      btnStart: 'Generate test',
+      btnSave: 'Save',
+      btnSaveTitle: 'Save in this browser',
+      btnLoad: 'Load',
+      btnReset: 'Reset',
+      btnPrint: 'Print / PDF',
+      q1Title: 'Q1 — Typology',
+      q1Subtitle: '“Shower” or “grower”? (definitions)',
+      q1List: '<li><strong>“Shower” (more flesh)</strong>: looks bigger at rest, changes less when erect.</li><li><strong>“Grower” (more blood)</strong>: looks smaller at rest, expands a lot when erect.</li>',
+      q1LabelChair: 'Shower / more flesh',
+      q1LabelSang: 'Grower / more blood',
+      q1LabelMixed: 'Mixed / variable',
+      q1LabelNo: 'I don’t know / I don’t want to choose'
+    }
+  };
+
+  function applyLang(lang){
+    currentLang = (lang === 'en') ? 'en' : 'fr';
+    const t = UI_I18N[currentLang];
+
+    // Header
+    const titleText = document.getElementById('titleMainText');
+    if(titleText && t.titleMain) titleText.textContent = t.titleMain;
+    const badge = document.getElementById('badgeMain');
+    if(badge && t.badgeMain) badge.textContent = t.badgeMain;
+    const subtitle = document.getElementById('subtitleMain');
+    if(subtitle && t.subtitleMain) subtitle.textContent = t.subtitleMain;
+
+    const vLabel = document.getElementById('versionLabel');
+    if(vLabel && t.versionLabel){
+      const node = vLabel.childNodes[0];
+      if(node && node.nodeType === Node.TEXT_NODE){
+        node.nodeValue = t.versionLabel + ' ';
+      }
+    }
+
+    const vSel = document.getElementById('versionSelect');
+    if(vSel){
+      if(vSel.options[0] && t.versionShort) vSel.options[0].textContent = t.versionShort;
+      if(vSel.options[1] && t.versionFull) vSel.options[1].textContent = t.versionFull;
+    }
+
+    const btnStart = document.getElementById('btnStart');
+    if(btnStart && t.btnStart) btnStart.textContent = t.btnStart;
+    const btnSave = document.getElementById('btnSave');
+    if(btnSave){
+      if(t.btnSave) btnSave.textContent = t.btnSave;
+      if(t.btnSaveTitle) btnSave.title = t.btnSaveTitle;
+    }
+    const btnLoad = document.getElementById('btnLoad');
+    if(btnLoad && t.btnLoad) btnLoad.textContent = t.btnLoad;
+    const btnReset = document.getElementById('btnReset');
+    if(btnReset && t.btnReset) btnReset.textContent = t.btnReset;
+    const btnPrint = document.getElementById('btnPrint');
+    if(btnPrint && t.btnPrint) btnPrint.textContent = t.btnPrint;
+
+    // Q1 block (if visible)
+    const q1Title = document.getElementById('q1Title');
+    if(q1Title && t.q1Title) q1Title.textContent = t.q1Title;
+    const q1Subtitle = document.getElementById('q1Subtitle');
+    if(q1Subtitle && t.q1Subtitle) q1Subtitle.textContent = t.q1Subtitle;
+    const q1List = document.getElementById('q1List');
+    if(q1List && t.q1List) q1List.innerHTML = t.q1List;
+    const q1LabelChair = document.getElementById('q1LabelChair');
+    if(q1LabelChair && t.q1LabelChair) q1LabelChair.textContent = t.q1LabelChair;
+    const q1LabelSang = document.getElementById('q1LabelSang');
+    if(q1LabelSang && t.q1LabelSang) q1LabelSang.textContent = t.q1LabelSang;
+    const q1LabelMixed = document.getElementById('q1LabelMixed');
+    if(q1LabelMixed && t.q1LabelMixed) q1LabelMixed.textContent = t.q1LabelMixed;
+    const q1LabelNo = document.getElementById('q1LabelNo');
+    if(q1LabelNo && t.q1LabelNo) q1LabelNo.textContent = t.q1LabelNo;
+
+    // Lang buttons state
+    document.querySelectorAll('.langBtn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.lang === currentLang);
+    });
+  }
+
   // ---------------- Data definition -----------------
   const ITEMS = {
     A:[
@@ -347,20 +371,21 @@
     // Intro / Q1
     const intro = document.createElement('div');
     intro.className = 'card';
-    intro.innerHTML = `
-      <h2>Q1 — Typologie</h2>
-      <p class="muted">Pénis de chair ou de sang ? (définitions)</p>
-      <ul>
+        intro.innerHTML = `
+      <h2 id="q1Title">Q1 — Typologie</h2>
+      <p class="muted" id="q1Subtitle">Pénis de chair ou de sang ? (définitions)</p>
+      <ul id="q1List">
         <li><strong>De chair (“shower”)</strong> : volumineux au repos, variation moindre en érection.</li>
         <li><strong>De sang (“grower”)</strong> : discret au repos, forte expansion en érection.</li>
       </ul>
       <div class="row">
-        <label class="pill"><input type="radio" name="Q1" value="chair">&nbsp;Chair</label>
-        <label class="pill"><input type="radio" name="Q1" value="sang">&nbsp;Sang</label>
-        <label class="pill"><input type="radio" name="Q1" value="nsp">&nbsp;Je ne sais pas / varie</label>
+        <label class="pill"><input type="radio" name="Q1" value="chair">&nbsp;<span id="q1LabelChair">Chair</span></label>
+        <label class="pill"><input type="radio" name="Q1" value="sang">&nbsp;<span id="q1LabelSang">Sang</span></label>
+        <label class="pill"><input type="radio" name="Q1" value="mixte">&nbsp;<span id="q1LabelMixed">Mixte / variable</span></label>
+        <label class="pill"><input type="radio" name="Q1" value="nsp">&nbsp;<span id="q1LabelNo">Je ne sais pas / je ne veux pas choisir</span></label>
       </div>
     `;
-    app.appendChild(intro);
+app.appendChild(intro);
 
     // Sections
     order.forEach(letter => {
@@ -644,7 +669,10 @@
   }
 
   // --------------- Global controls -----------------
-  document.getElementById('btnStart').onclick = () => renderTest($('#versionSelect').value);
+  document.getElementById('btnStart').onclick = () => {
+    renderTest($('#versionSelect').value);
+    applyLang(currentLang);
+  };
   document.getElementById('btnSave').onclick = () => {
     const version = $('#versionSelect').value;
     const order = version==='short'? ORDER_SHORT : ORDER_FULL;
@@ -658,19 +686,17 @@
   document.getElementById('btnReset').onclick = () => { localStorage.removeItem('psycholodick_answers'); location.reload(); }
   document.getElementById('btnPrint').onclick = () => window.print();
 
-  
-  // --------------- Intro overlay -----------------
-  const introOverlay = document.getElementById('introOverlay');
-  const btnEnterRitual = document.getElementById('btnEnterRitual');
-  if(btnEnterRitual && introOverlay){
-    btnEnterRitual.onclick = () => {
-      introOverlay.style.opacity = '0';
-      introOverlay.style.pointerEvents = 'none';
-      setTimeout(()=>{ if(introOverlay && introOverlay.parentNode){ introOverlay.parentNode.removeChild(introOverlay); } }, 400);
-    };
-  }
+  // Lang switch buttons
+  document.querySelectorAll('.langBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyLang(btn.dataset.lang);
+    });
+  });
 
-// Auto-init (try load)
+  // Initial language application
+  applyLang(currentLang);
+
+  // Auto-init (try load)
   const cached = loadLocal();
   if(cached){ applyData(cached); }
   </script>
